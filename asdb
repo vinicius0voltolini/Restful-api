@@ -1,0 +1,66 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Banco de dados temporário
+alunos = {}
+
+@app.route('/alunos', methods=['GET'])
+def listar_alunos():
+    return jsonify(alunos), 200
+
+@app.route('/alunos', methods=['POST'])
+def cadastrar_aluno():
+    dados = request.get_json()
+
+    if not dados:
+        return jsonify({'erro': 'Dados JSON ausentes'}), 400
+
+    matricula = str(dados.get('matricula'))
+
+    if not all([matricula, dados.get('nome'), dados.get('turma'), dados.get('idade')]):
+        return jsonify({'erro': 'Todos os campos (matricula, nome, turma, idade) são obrigatórios'}), 400
+
+    if matricula in alunos:
+        return jsonify({'erro': 'Aluno já cadastrado com essa matrícula'}), 400
+
+    alunos[matricula] = {
+        'nome': dados['nome'],
+        'turma': dados['turma'],
+        'idade': dados['idade']
+    }
+
+    return jsonify({'mensagem': 'Aluno cadastrado com sucesso'}), 201
+
+@app.route('/alunos/<matricula>', methods=['GET'])
+def obter_aluno(matricula):
+    aluno = alunos.get(matricula)
+    if aluno:
+        return jsonify(aluno), 200
+    return jsonify({'erro': 'Aluno não encontrado'}), 404
+
+@app.route('/alunos/<matricula>', methods=['PUT'])
+def atualizar_aluno(matricula):
+    if matricula not in alunos:
+        return jsonify({'erro': 'Aluno não encontrado'}), 404
+
+    dados = request.get_json()
+    if not dados:
+        return jsonify({'erro': 'Dados JSON ausentes'}), 400
+
+    aluno = alunos[matricula]
+    aluno['nome'] = dados.get('nome', aluno['nome'])
+    aluno['turma'] = dados.get('turma', aluno['turma'])
+    aluno['idade'] = dados.get('idade', aluno['idade'])
+
+    return jsonify({'mensagem': 'Aluno atualizado com sucesso'}), 200
+
+@app.route('/alunos/<matricula>', methods=['DELETE'])
+def deletar_aluno(matricula):
+    if matricula in alunos:
+        del alunos[matricula]
+        return jsonify({'mensagem': 'Aluno deletado com sucesso'}), 200
+    return jsonify({'erro': 'Aluno não encontrado'}), 404
+
+if __name__ == '__main__':
+    app.run(debug=True)
