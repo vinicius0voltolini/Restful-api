@@ -1,29 +1,42 @@
 from flask import Flask, request, jsonify
 
+# Cria a aplicação Flask
 app = Flask(__name__)
 
-# Banco de dados temporário
+# Banco de dados temporário em memória
 alunos = {}
 
+# =========================
+# LISTAR TODOS OS ALUNOS
+# =========================
 @app.route('/alunos', methods=['GET'])
 def listar_alunos():
+    # Retorna todos os alunos cadastrados em formato JSON
     return jsonify(alunos), 200
 
+# =========================
+# CADASTRAR UM NOVO ALUNO
+# =========================
 @app.route('/alunos', methods=['POST'])
 def cadastrar_aluno():
+    # Obtém os dados enviados pelo cliente em JSON
     dados = request.get_json()
 
+    # Verifica se os dados foram enviados
     if not dados:
         return jsonify({'erro': 'Dados JSON ausentes'}), 400
 
     matricula = str(dados.get('matricula'))
 
+    # Verifica se todos os campos obrigatórios estão presentes
     if not all([matricula, dados.get('nome'), dados.get('turma'), dados.get('idade')]):
         return jsonify({'erro': 'Todos os campos (matricula, nome, turma, idade) são obrigatórios'}), 400
 
+    # Verifica se a matrícula já existe
     if matricula in alunos:
         return jsonify({'erro': 'Aluno já cadastrado com essa matrícula'}), 400
 
+    # Adiciona o aluno ao banco de dados
     alunos[matricula] = {
         'nome': dados['nome'],
         'turma': dados['turma'],
@@ -32,22 +45,33 @@ def cadastrar_aluno():
 
     return jsonify({'mensagem': 'Aluno cadastrado com sucesso'}), 201
 
+# =========================
+# OBTER UM ALUNO PELO ID
+# =========================
 @app.route('/alunos/<matricula>', methods=['GET'])
 def obter_aluno(matricula):
     aluno = alunos.get(matricula)
     if aluno:
+        # Retorna os dados do aluno
         return jsonify(aluno), 200
+    # Retorna erro se não encontrado
     return jsonify({'erro': 'Aluno não encontrado'}), 404
 
+# =========================
+# ATUALIZAR UM ALUNO EXISTENTE
+# =========================
 @app.route('/alunos/<matricula>', methods=['PUT'])
 def atualizar_aluno(matricula):
+    # Verifica se o aluno existe
     if matricula not in alunos:
         return jsonify({'erro': 'Aluno não encontrado'}), 404
 
+    # Obtém os dados enviados pelo cliente
     dados = request.get_json()
     if not dados:
         return jsonify({'erro': 'Dados JSON ausentes'}), 400
 
+    # Atualiza somente os campos fornecidos
     aluno = alunos[matricula]
     aluno['nome'] = dados.get('nome', aluno['nome'])
     aluno['turma'] = dados.get('turma', aluno['turma'])
@@ -55,14 +79,22 @@ def atualizar_aluno(matricula):
 
     return jsonify({'mensagem': 'Aluno atualizado com sucesso'}), 200
 
+# =========================
+# DELETAR UM ALUNO
+# =========================
 @app.route('/alunos/<matricula>', methods=['DELETE'])
 def deletar_aluno(matricula):
+    # Verifica se o aluno existe e remove
     if matricula in alunos:
         del alunos[matricula]
         return jsonify({'mensagem': 'Aluno deletado com sucesso'}), 200
     return jsonify({'erro': 'Aluno não encontrado'}), 404
 
+# =========================
+# EXECUÇÃO DA APLICAÇÃO
+# =========================
 if __name__ == '__main__':
+    # Executa o servidor Flask no modo debug
     app.run(debug=True)
 
 """
