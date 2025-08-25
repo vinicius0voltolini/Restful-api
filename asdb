@@ -64,3 +64,24 @@ def deletar_aluno(matricula):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+"""
+
+1. GET /alunos
+   - Retorna todos os alunos cadastrados em formato JSON.
+
+2. POST /alunos
+   - Cadastra um novo aluno.
+   - Espera um JSON com os campos: matricula, nome, turma, idade.
+
+3. GET /alunos/<matricula>
+   - Retorna os dados do aluno com a matrícula especificada.
+
+4. PUT /alunos/<matricula>
+   - Atualiza os dados de um aluno existente.
+   - Permite atualizar parcialmente os campos (nome, turma, idade).
+
+5. DELETE /alunos/<matricula>
+   - Remove um aluno com a matrícula especificada.
+"""
